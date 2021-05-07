@@ -39,4 +39,6 @@ for(huc in hucs){
 }
 summary(lake_temp_inventory)
 
-
+# Testing the inventory_nwis_lakes function
+test_inventory_nwis_lakes <- inventory_nwis_lakes(
+  siteType = "LK",parameterCd = "00010")

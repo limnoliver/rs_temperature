@@ -1,17 +1,19 @@
+# This script finds the sites/dates that have
+# both a satellite overpass (dates from Tyler)
+# and a temperature observation
 library(tidyverse)
 library(scipiper)
 
-
-# Reading the qaqc nation temperature data. 
+# Read in the qaqc national temperature data from here https://github.com/USGS-R/2wp-temp-observations
 dat <- readRDS('data/in/daily_temperatures_qaqc.rds') %>%
   mutate(date = as.Date(date))
-
 
 # Reading site-dates of satellite overpasses
 sat_dat <- readr::read_csv('data/in/potential_rs_temperature_stream_sites_resolvable_width_dates.csv') %>%
   mutate(date = as.Date(dates, format = '%m/%d/%Y %H:%M'))
 
-
+# need to fix ecoshed site IDs because there was a change in 
+# naming convention since I originally provided Tyler sites
 eco_sites <- readRDS('data/in/ecosheds_sites.rds') %>%
   mutate(new_site_id = paste(agency_name, location_name, sep = '-'),
          location_id = as.character(location_id), 
@@ -45,6 +47,8 @@ matched_sites <- group_by(matched_all, site_id, source) %>%
 
 # are there any important missing sites from sat_dat 
 # that should have a lot of data?
+# can compare n_matches to n_days to answer this Q
+# looks like we've recovered all sites with lots of data
 sat_sites <- sat_dat_f %>%
   select(site_id, source, n_days) %>%
   distinct() %>%
@@ -54,7 +58,7 @@ sat_sites <- sat_dat_f %>%
   arrange(-n_matches) %>%
   left_join(distinct(select(sat_dat_f, site_id, basin_name, latitude, longitude)))
 
+# write data
 readr::write_csv(matched_all, 'data/out/matched_site_dates_temperature.csv')
 readr::write_csv(sat_sites, 'data/out/summary_matched_site_dates_temperature.csv')
-# write data
-head(matched_all)
+

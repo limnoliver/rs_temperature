@@ -1,12 +1,10 @@
-# read in HUC file
-# got HUC file from here: https://nrcs.app.box.com/v/huc/folder/39640323180
+# This script selects potential temperature sites for matching
+# to RS temperature. This takes in data from the national stream temperature
+# data pipeline (https://github.com/USGS-R/2wp-temp-observations)
 
-# HUC units for each basin
 library(dplyr)
 
-
 # read in temperature data
-# data come from here: 
 temps <- readRDS('data/in/daily_temperatures.rds')
 temp_sites <- readRDS('data/in/stream_sites_us.rds')
 
@@ -14,6 +12,7 @@ temp_sites <- readRDS('data/in/stream_sites_us.rds')
 source('code/match_to_basins.R')
 sites <- match_to_hucs(in_sites = temp_sites)
 
+# filter sites to those with temp data after 2013
 # temp summary by site
 summary <- mutate(temps, year = lubridate::year(date)) %>%
   filter(year >= 2013) %>%
@@ -21,10 +20,9 @@ summary <- mutate(temps, year = lubridate::year(date)) %>%
   summarize(n_days = n(),
             med_n_daily_obs = median(n_obs))
 
-# filter sites to those with temp data after 2013
 sites <- filter(sites, site_id %in% unique(summary$site_id))
-# do our best to reconcile duplicate data
 
+# do our best to reconcile duplicate data
 sites <- group_by(sites, latitude, longitude) %>%
   mutate(duplicates = n()) %>% ungroup()
 
@@ -43,28 +41,3 @@ rs_sites <- ungroup(sites3) %>%
   arrange(basin_name, -n_days)
 
 write.csv(rs_sites, 'potential_rs_temperature_stream_sites.csv', row.names = FALSE)
-
-# now filter temp data to those sites
-temps <- filter(temps, site_id %in% unique(sites$site_id))
-
-# test going to uv for a dv site
-dv <- filter(rs_sites, source %in% 'nwis_dv')
-uv <- dataRetrieval::readNWISuv(siteNumbers = '05576195', parameterCd = '00010')
-compare <- filter(temps, site_id %in% 'USGS-05576195')
-
-dropped_nwisdv <- ungroup(sites2) %>%
-  filter(source %in% 'nwis_dv') %>%
-  filter(!site_id %in% unique(sites3$site_id[sites3$source %in% 'nwis_dv']))
-
-View(filter(summary, site_id %in% dropped_nwisdv$site_id[1]))
-# ecosheds data
-# need to use better site identifier for EcoSHEDS 
-# because it includes USGS data
-sheds <- readRDS("data/in/ecosheds_sites.rds")
-names(hucs)
-head(hucs)
-library(ggplot2)
-ggplot() +
-  geom_sf(data = filter(hucs, basin_name %in% 'DRB')) +
-  geom_sf(data = filter(points_in_hucs, basin_name %in% 'DRB'), color = 'red') +
-  geom_sf(data = points_in_drb, color = 'blue')

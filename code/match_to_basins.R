@@ -1,3 +1,6 @@
+# This function matches sites to basins, and filters to only DRB/ILRB/UCRB
+# got HUC file from here: https://nrcs.app.box.com/v/huc/folder/39640323180
+# I'm using the temperature project's boundary for the DRB since that HUC is wonky near the coast
 
 match_to_hucs <- function(in_sites) {
   # HUC units for each basin

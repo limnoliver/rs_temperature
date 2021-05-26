@@ -1,3 +1,7 @@
+# this script inventories the U.S. for 
+# reservoir temperature data, and filters it down to 
+# those sites in the DRB, ILRB, UCRB
+
 library(tidyverse)
 library(dataRetrieval)
 

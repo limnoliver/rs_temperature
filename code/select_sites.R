@@ -1,5 +1,5 @@
 # read in HUC file
-# got HUC file from here:
+# got HUC file from here: https://nrcs.app.box.com/v/huc/folder/39640323180
 
 # HUC units for each basin
 library(dplyr)
